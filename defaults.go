@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"strconv"
 	"time"
+
+	config_duration "github.com/unlikezy/config/duration"
 )
 
 // Applies the default values to the struct object, the struct type must have
@@ -96,6 +98,14 @@ func newDefaultFiller() *Filler {
 	types["time.Duration"] = func(field *FieldData) {
 		d, _ := time.ParseDuration(field.TagValue)
 		field.Value.Set(reflect.ValueOf(d))
+	}
+
+	//To make it more convenient, I combine package defaults and toml. And we need to support duration type in these two packages.
+	//But the ways these two pacakges support new type differ.
+	//Compared with toml, package defaults are relatively small and simple, so I decided to fork and modify package defautls to support config.Duration type.
+	types[GetTypeHash(reflect.TypeOf(config_duration.Duration(0)))] = func(field *FieldData) {
+		d, _ := time.ParseDuration(field.TagValue)
+		field.Value.SetInt(int64(d))
 	}
 
 	return &Filler{FuncByKind: funcs, FuncByType: types, Tag: "default"}
